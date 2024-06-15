@@ -5,9 +5,15 @@ const app = express();
 const PORT = 3043;
 
 app.get('/data', async (req, res) => {
+  const githubUsername = req.query.githubUsername;  // Extract GitHub username from query parameters
+
+  if (!githubUsername) {
+    return res.status(400).json({ error: 'GitHub username is required' });
+  }
+
   try {
     // Fetch data from the external API
-    const response = await fetch(`http://54.147.216.5:3042/v4/${githubusername}`);
+    const response = await fetch(`http://54.147.216.5:3042/v4/${githubUsername}`);
     const data = await response.json();
 
     // Filter contributions to include only the last 255 days
