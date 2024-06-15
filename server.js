@@ -2,12 +2,12 @@ import express from 'express';
 import fetch from 'node-fetch';
 
 const app = express();
-const PORT = 3000;
+const PORT = 3043;
 
 app.get('/data', async (req, res) => {
   try {
     // Fetch data from the external API
-    const response = await fetch('http://localhost:8080/v4/maximilianhansen');
+    const response = await fetch(`http://54.147.216.5:3042/v4/${githubusername}`);
     const data = await response.json();
 
     // Filter contributions to include only the last 255 days
