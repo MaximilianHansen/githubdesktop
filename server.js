@@ -24,20 +24,29 @@ app.get('/data', async (req, res) => {
       return differenceInDays >= 0 && differenceInDays <= 255;
     });
 
-    // Map contributions to the desired format
-    const formattedContributions = sortedContributions.map(contribution => {
+    // Initialize the 32 columns (weeks) with empty data
+    const weeks = Array.from({ length: 32 }, () => Array(7).fill({ on: false }));
+
+    sortedContributions.forEach(contribution => {
       const contributionDate = new Date(contribution.date);
       const differenceInDays = Math.floor((today - contributionDate) / (1000 * 60 * 60 * 24));
+      const weekIndex = Math.floor(differenceInDays / 7);
       const dayOfWeek = contributionDate.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-      return {
-        id: differenceInDays,
-        dayOfWeek: dayOfWeek, // Adding the day of the week
-        on: contribution.level > 0
-      };
+
+      // Ensure the week index is within the 32 weeks
+      if (weekIndex < 32) {
+        weeks[weekIndex][dayOfWeek] = { on: contribution.level > 0 };
+      }
     });
 
-    // Sort the formatted contributions by id (days ago)
-    formattedContributions.sort((a, b) => a.id - b.id);
+    // Flatten the weeks array into a single array for easier processing on the client side
+    const formattedContributions = weeks.flatMap((week, weekIndex) => 
+      week.map((day, dayOfWeek) => ({
+        id: weekIndex * 7 + dayOfWeek,
+        dayOfWeek,
+        on: day.on
+      }))
+    );
 
     // Send the formatted data as the response
     res.json(formattedContributions);
