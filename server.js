@@ -24,22 +24,35 @@ app.get('/data', async (req, res) => {
       return differenceInDays >= 0 && differenceInDays <= 255;
     });
 
-    // Initialize a 2D array for 32 weeks (columns) and 7 days (rows)
-    const weeks = Array.from({ length: 32 }, () => Array(7).fill(false));
-
-    // Populate the 2D array with contributions data
-    sortedContributions.forEach(contribution => {
+    // Map contributions to the desired format
+    const formattedContributions = sortedContributions.map(contribution => {
       const contributionDate = new Date(contribution.date);
-      const weekIndex = Math.floor((today - contributionDate) / (1000 * 60 * 60 * 24 * 7));
+      const differenceInDays = Math.floor((today - contributionDate) / (1000 * 60 * 60 * 24));
       const dayOfWeek = contributionDate.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-
-      // Ensure the weekIndex is within the 32 weeks
-      if (weekIndex < 32) {
-        weeks[31 - weekIndex][dayOfWeek] = contribution.level > 0;
-      }
+      return {
+        id: differenceInDays,
+        dayOfWeek: dayOfWeek, // Adding the day of the week
+        date: contribution.date, // Adding the date
+        on: contribution.level > 0
+      };
     });
 
-    // Send the 2D array as the response
+    // Sort the formatted contributions by id (days ago)
+    formattedContributions.sort((a, b) => a.id - b.id);
+
+    // Organize data into a 2D array
+    const weeks = Array.from({ length: 32 }, () => Array(7).fill(false));
+
+    formattedContributions.forEach(contribution => {
+      const week = Math.floor(contribution.id / 7);
+      const day = contribution.id % 7;
+      weeks[week][day] = {
+        on: contribution.on,
+        date: contribution.date
+      };
+    });
+
+    // Send the formatted data as the response
     res.json(weeks);
   } catch (error) {
     console.error('Error fetching data:', error);
