@@ -47,6 +47,7 @@ app.get('/data', async (req, res) => {
     formattedContributions.forEach(contribution => {
       const week = Math.floor(contribution.id / 7);
       const day = contribution.id % 7;
+      console.log(`Setting week ${week}, day ${day}, with value`, contribution);
       weeks[week][day] = {
         on: contribution.on,
         date: contribution.date
