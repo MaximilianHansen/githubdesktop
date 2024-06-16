@@ -28,8 +28,10 @@ app.get('/data', async (req, res) => {
     const formattedContributions = sortedContributions.map(contribution => {
       const contributionDate = new Date(contribution.date);
       const differenceInDays = Math.floor((today - contributionDate) / (1000 * 60 * 60 * 24));
+      const dayOfWeek = contributionDate.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
       return {
         id: differenceInDays,
+        dayOfWeek: dayOfWeek, // Adding the day of the week
         on: contribution.level > 0
       };
     });
