@@ -40,9 +40,10 @@ app.get('/data', async (req, res) => {
     // Sort the formatted contributions by id (days ago)
     formattedContributions.sort((a, b) => a.id - b.id);
 
-    // Organize data into a 2D array
-    const weeks = Array.from({ length: 32 }, () => Array(7).fill(false));
+    // Initialize a 2D array for weeks and days
+    const weeks = Array.from({ length: 32 }, () => Array(7).fill(null));
 
+    // Fill the 2D array with contributions data
     formattedContributions.forEach(contribution => {
       const week = Math.floor(contribution.id / 7);
       const day = contribution.id % 7;
@@ -51,6 +52,15 @@ app.get('/data', async (req, res) => {
         date: contribution.date
       };
     });
+
+    // Replace null with default values
+    for (let week = 0; week < 32; week++) {
+      for (let day = 0; day < 7; day++) {
+        if (weeks[week][day] === null) {
+          weeks[week][day] = { on: false, date: null };
+        }
+      }
+    }
 
     // Send the formatted data as the response
     res.json(weeks);
