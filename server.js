@@ -1,76 +1,69 @@
 import express from 'express';
 import fetch from 'node-fetch';
+import moment from 'moment';
 
 const app = express();
-const PORT = 3043;
+const port = 3000;
 
 app.get('/data', async (req, res) => {
-  const githubUsername = req.query.githubUsername;  // Extract GitHub username from query parameters
+  const githubUsername = req.query.githubUsername;
 
   if (!githubUsername) {
     return res.status(400).json({ error: 'GitHub username is required' });
   }
 
   try {
-    // Fetch data from the external API
     const response = await fetch(`http://54.147.216.5:3042/v4/${githubUsername}`);
-    const data = await response.json();
-
-    // Filter contributions to include only the last 255 days
-    const today = new Date();
-    const sortedContributions = data.contributions.filter(contribution => {
-      const contributionDate = new Date(contribution.date);
-      const differenceInDays = Math.floor((today - contributionDate) / (1000 * 60 * 60 * 24));
-      return differenceInDays >= 0 && differenceInDays <= 255;
-    });
-
-    // Map contributions to the desired format
-    const formattedContributions = sortedContributions.map(contribution => {
-      const contributionDate = new Date(contribution.date);
-      const differenceInDays = Math.floor((today - contributionDate) / (1000 * 60 * 60 * 24));
-      const dayOfWeek = contributionDate.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-      return {
-        id: differenceInDays,
-        dayOfWeek: dayOfWeek, // Adding the day of the week
-        date: contribution.date, // Adding the date
-        on: contribution.level > 0
-      };
-    });
-
-    // Sort the formatted contributions by id (days ago)
-    formattedContributions.sort((a, b) => a.id - b.id);
-
-    // Initialize a 2D array for weeks and days
-    const weeks = Array.from({ length: 32 }, () => Array(7).fill(null));
-
-    // Fill the 2D array with contributions data
-    formattedContributions.forEach(contribution => {
-      const week = Math.floor(contribution.id / 7);
-      const day = contribution.id % 7;
-      console.log(`Setting week ${week}, day ${day}, with value`, contribution);
-      weeks[week][day] = {
-        on: contribution.on,
-        date: contribution.date
-      };
-    });
-
-    // Replace null with default values
-    for (let week = 0; week < 32; week++) {
-      for (let day = 0; day < 7; day++) {
-        if (weeks[week][day] === null) {
-          weeks[week][day] = { on: false, date: null };
-        }
-      }
+    
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch data from the external server' });
     }
+    
+    const data = await response.json();
+    //console.log("Fetched data:", data);
+    const filterByLast223Days = (data) => {
+      const today = moment();
+      const endOfWeek = today.clone().endOf('week');
+      const startDate = endOfWeek.clone().subtract(223, 'days');
+    
+      return data.filter(entry => {
+        const entryDate = moment(entry.date, 'YYYY-MM-DD');
+        return entryDate.isBetween(startDate, endOfWeek, null, '[]');
+      });
+    };
+    // Calculate current week and last 7 weeks
+    const sortByDateDesc = (data) => {
+      return data.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB - dateA; // Sorts in descending order
+      });
+    };
 
-    // Send the formatted data as the response
-    res.json(weeks);
+    const days = data.contributions
+
+    const filteredDays = filterByLast223Days(days);
+
+    const filteredSortedDays = sortByDateDesc(filteredDays)
+    
+    const cleanData = filteredSortedDays.map(item => {
+      return {
+        on: item.count !== 0
+      };
+    });
+    
+
+
+
+   
+
+    res.json(cleanData);
   } catch (error) {
-    console.error('Error fetching data:', error);
-    res.status(500).json({ error: 'Failed to fetch data' });
+    console.error("Error fetching data:", error);
+    res.status(500).json({ error: 'An error occurred while fetching data' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
