@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import moment from 'moment';
 
 const app = express();
-const port = 3000;
+const port = 3043;
 
 app.get('/data', async (req, res) => {
   const githubUsername = req.query.githubUsername;
