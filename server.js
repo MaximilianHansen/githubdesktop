@@ -4,6 +4,7 @@ import moment from 'moment';
 
 const app = express();
 const port = 3043;
+const hi = 'hi';
 
 app.get('/data', async (req, res) => {
   const githubUsername = req.query.githubUsername;
