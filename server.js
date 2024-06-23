@@ -25,7 +25,10 @@ app.get('/data', async (req, res) => {
     const filterByLast223Days = (data) => {
       const today = moment();
       const endOfWeek = today.clone().endOf('week');
+      console.log(endOfWeek,"endofweek")
       const startDate = endOfWeek.clone().subtract(223, 'days');
+
+
     
       return data.filter(entry => {
         const entryDate = moment(entry.date, 'YYYY-MM-DD');
@@ -53,7 +56,6 @@ app.get('/data', async (req, res) => {
       };
     });
     
-
 
 
    
