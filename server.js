@@ -44,19 +44,23 @@ app.get('/data', async (req, res) => {
       });
     };
 
+    function convertToBitArray(contributions) {
+      return contributions.map(item => item.count !== 0 ? '1' : '0').join('');
+    }
+
     const days = data.contributions
 
     const filteredDays = filterByLast223Days(days);
 
-    const filteredSortedDays = sortByDateDesc(filteredDays)
+    const filteredSortedDays = sortByDateDesc(filteredDays);
     
    
-    
+    const bitArray = convertToBitArray(filteredSortedDays);
 
 
    
 
-    res.json(filteredSortedDays);
+    res.json(bitArray);
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).json({ error: 'An error occurred while fetching data' });
