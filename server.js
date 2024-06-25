@@ -4,7 +4,6 @@ import moment from 'moment';
 
 const app = express();
 const port = 3043;
-const hi = 'hi';
 
 app.get('/data', async (req, res) => {
   const githubUsername = req.query.githubUsername;
@@ -21,46 +20,32 @@ app.get('/data', async (req, res) => {
     }
     
     const data = await response.json();
-    //console.log("Fetched data:", data);
     const filterByLast223Days = (data) => {
       const today = moment();
       const endOfWeek = today.clone().endOf('week');
-      console.log(endOfWeek,"endofweek")
       const startDate = endOfWeek.clone().subtract(223, 'days');
-
-
-    
       return data.filter(entry => {
         const entryDate = moment(entry.date, 'YYYY-MM-DD');
         return entryDate.isBetween(startDate, endOfWeek, null, '[]');
       });
     };
-    // Calculate current week and last 7 weeks
+
     const sortByDateDesc = (data) => {
       return data.sort((a, b) => {
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
-        return dateB - dateA; // Sorts in descending order
+        return dateB - dateA;
       });
     };
 
-    const days = data.contributions
-
+    const days = data.contributions;
     const filteredDays = filterByLast223Days(days);
-
-    const filteredSortedDays = sortByDateDesc(filteredDays)
+    const filteredSortedDays = sortByDateDesc(filteredDays);
     
-    const cleanData = filteredSortedDays.map(item => {
-      return {
-        on: item.count !== 0
-      };
-    });
-    
+    const bitArray = filteredSortedDays.map(item => item.count !== 0 ? '1' : '0').join('');
+    const hexString = parseInt(bitArray, 2).toString(16);
 
-
-   
-
-    res.json(cleanData);
+    res.json({ hex: hexString });
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).json({ error: 'An error occurred while fetching data' });
