@@ -20,6 +20,7 @@ app.get('/data', async (req, res) => {
     }
     
     const data = await response.json();
+    
     const filterByLast223Days = (data) => {
       const today = moment();
       const endOfWeek = today.clone().endOf('week');
@@ -41,11 +42,10 @@ app.get('/data', async (req, res) => {
     const days = data.contributions;
     const filteredDays = filterByLast223Days(days);
     const filteredSortedDays = sortByDateDesc(filteredDays);
-    
-    const bitArray = filteredSortedDays.map(item => item.count !== 0 ? '1' : '0').join('');
-    const hexString = parseInt(bitArray, 2).toString(16);
 
-    res.json({ hex: hexString });
+    const bitArray = filteredSortedDays.map(item => item.count !== 0 ? '1' : '0').join('');
+
+    res.json({ bitArray: bitArray });
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).json({ error: 'An error occurred while fetching data' });
