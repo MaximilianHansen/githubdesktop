@@ -50,17 +50,13 @@ app.get('/data', async (req, res) => {
 
     const filteredSortedDays = sortByDateDesc(filteredDays)
     
-    const cleanData = filteredSortedDays.map(item => {
-      return {
-        on: item.count !== 0
-      };
-    });
+   
     
 
-    
+
    
 
-    res.json(cleanData);
+    res.json(filteredSortedDays);
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).json({ error: 'An error occurred while fetching data' });
